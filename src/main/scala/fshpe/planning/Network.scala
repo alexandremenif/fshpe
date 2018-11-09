@@ -1,7 +1,6 @@
 package fshpe.planning
 
 import scala.annotation.tailrec
-import scala.collection.breakOut
 
 case class Node[A](element: A, nextNodes: Set[Node[A]] = Set.empty[Node[A]]) {
 
@@ -17,7 +16,7 @@ sealed abstract class Network[A] {
 
   def +::(node: Node[A]): Network[A] = new +::(node, this)
 
-  def firstNodes: Stream[Node[A]]
+  def firstNodes: LazyList[Node[A]]
 
   def isEmpty: Boolean
 
@@ -66,7 +65,7 @@ sealed abstract class Network[A] {
   }
 
   override def toString: String = {
-    val nodeIndex: Map[Node[A], String] = nodes.zipWithIndex.map { case (node, i) => (node, s"n$i")}(breakOut)
+    val nodeIndex = nodes.view.zipWithIndex.map { case (node, i) => (node, s"n$i")}.to(Map)
     val constraints = nodes.foldLeft[Set[(String, String)]](Set()) { case (acc, node) =>
       acc.union(node.nextNodes.map(n => (nodeIndex.getOrElse(node, "unknown"), nodeIndex.getOrElse(n, "unknown"))))
     }
@@ -76,7 +75,7 @@ sealed abstract class Network[A] {
 
 case class +::[A](head: Node[A], tail: Network[A]) extends Network[A] {
 
-  override def firstNodes: Stream[Node[A]] = head #:: tail.firstNodes.filter(node => !head.nextNodes.contains(node))
+  override def firstNodes: LazyList[Node[A]] = head #:: tail.firstNodes.filter(node => !head.nextNodes.contains(node))
 
   override def isEmpty: Boolean = false
 
@@ -87,7 +86,7 @@ case class +::[A](head: Node[A], tail: Network[A]) extends Network[A] {
 
 case class Empty[A]() extends Network[A] {
 
-  override def firstNodes: Stream[Node[A]] = Stream.empty
+  override def firstNodes: LazyList[Node[A]] = LazyList.empty
 
   override def isEmpty: Boolean = true
 

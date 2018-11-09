@@ -53,11 +53,11 @@ object Gripper {
 
   case class AchieveAtRobby(room: Object) extends CompoundTask[State] {
 
-    override def methods: Stream[Method[State]] = Stream(
+    override def methods: LazyList[Method[State]] = LazyList(
       Method(_.atRobby(room), Network.empty),
       Method { state =>
         for {
-          from <- state.atRobby.toStream  if from != room
+          from <- state.atRobby.toLazyList  if from != room
         } yield Network.one[Task[State]](Move(from, room))
       }
     )
@@ -65,12 +65,12 @@ object Gripper {
 
   case class AchieveFree(gripper: Object) extends CompoundTask[State] {
 
-    override def methods: Stream[Method[State]] = Stream(
+    override def methods: LazyList[Method[State]] = LazyList(
       Method(_.free(gripper), Network.empty),
       Method { state =>
         for {
-          obj <- state.ball.toStream if state.carry(obj, gripper)
-          room <- state.room.toStream
+          obj <- state.ball.toLazyList if state.carry(obj, gripper)
+          room <- state.room.toLazyList
         } yield Network.sequence[Task[State]](
           AchieveAtRobby(room),
           Drop(obj, room, gripper)
@@ -81,11 +81,11 @@ object Gripper {
 
   case class AchieveCarry(gripper: Object, obj: Object) extends CompoundTask[State] {
 
-    override def methods: Stream[Method[State]] = Stream(
+    override def methods: LazyList[Method[State]] = LazyList(
       Method(_.carry(obj, gripper), Network.empty),
       Method { state =>
         for {
-          room <- state.room.toStream if state.at(obj, room)
+          room <- state.room.toLazyList if state.at(obj, room)
         } yield Network.sequence[Task[State]](
           AchieveFree(gripper),
           AchieveAtRobby(room),
@@ -97,11 +97,11 @@ object Gripper {
 
   case class AchieveAt(obj: Object, room: Object) extends CompoundTask[State] {
 
-    override def methods: Stream[Method[State]] = Stream(
+    override def methods: LazyList[Method[State]] = LazyList(
       Method(_.at(obj, room), Network.empty),
       Method { state =>
         for {
-          gripper <- state.gripper.toStream
+          gripper <- state.gripper.toLazyList
         } yield Network.sequence[Task[State]](
           AchieveCarry(gripper, obj),
           AchieveAtRobby(room),

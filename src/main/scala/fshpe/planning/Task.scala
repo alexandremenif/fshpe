@@ -15,7 +15,7 @@ abstract class Action[S] extends Task[S] {
 
 abstract class CompoundTask[S] extends Task[S] {
 
-  def methods: Stream[Method[S]]
+  def methods: LazyList[Method[S]]
 
-  final def decompositions(state: S): Stream[TaskNetwork[S]] = methods.flatMap(_.decompositions(state))
+  final def decompositions(state: S): LazyList[TaskNetwork[S]] = methods.flatMap(_.decompositions(state))
 }

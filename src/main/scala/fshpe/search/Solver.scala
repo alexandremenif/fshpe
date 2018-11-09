@@ -8,9 +8,9 @@ case class Solution[S](plan: Plan[S], cost: Double)
 
 trait Solver[S] {
 
-  def subProblems: Stream[SubProblem[S]]
+  def subProblems: LazyList[SubProblem[S]]
 
-  def solutions: Stream[Solution[S]] = subProblems.filter(_.taskNetwork.isEmpty).map(p => Solution(p.plan, p.cost))
+  def solutions: LazyList[Solution[S]] = subProblems.filter(_.taskNetwork.isEmpty).map(p => Solution(p.plan, p.cost))
 
   def firstSolution: Option[Solution[S]] = solutions.headOption
 
@@ -18,7 +18,7 @@ trait Solver[S] {
     * @param maxDuration max duration in milliseconds
     * @return best solution found within the max duration
     */
-  def solutionsWithin(maxDuration: Duration): Stream[Solution[S]] = {
+  def solutionsWithin(maxDuration: Duration): LazyList[Solution[S]] = {
     val start = System.nanoTime()
     subProblems
       .takeWhile(_ => (System.nanoTime() - start) < maxDuration.toNanos)

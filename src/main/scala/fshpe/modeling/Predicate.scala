@@ -8,7 +8,7 @@ class Predicate[A](elements: Set[A]) {
 
   def delete(o: A): Predicate[A] = new Predicate(elements - o)
 
-  def toStream: Stream[A] = elements.toStream
+  def toLazyList: LazyList[A] = elements.to(LazyList)
 
   override def toString: String = elements.toString
 }
